@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Temperatur Linz</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            box-sizing: border-box;
+        }
+        .header {
+            padding: 20px;
+            text-align: center;
+        }
+        #temperature {
+            font-size: 2em;
+            color: #007ACC;
+        }
+        #timestamp {
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+        .chart-container {
+            flex: 1;
+            padding: 20px;
+            height: 90%;
+            box-sizing: border-box;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div id="temperature">Lade Daten...</div>
+            <div id="timestamp"></div>
+        </div>
+        <div class="chart-container">
+            <canvas id="tempChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const currentUrl = "https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min?parameters=TL&station_ids=11060";
+        const historyUrl = "https://dataset.api.hub.geosphere.at/v1/station/historical/tawes-v1-10min?parameters=TL&start=2025-08-19T22:00&end=2025-08-20T22:00&station_ids=11060";
+
+        fetch(currentUrl)
+            .then(response => response.json())
+            .then(data => {
+                const temp = data.features[0].properties.parameters.TL.data[0];
+                const utcTime = new Date(data.timestamps[0]);
+                const options = {
+                    timeZone: 'Europe/Vienna',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                };
+                const formatter = new Intl.DateTimeFormat('de-DE', options);
+                const localTime = formatter.format(utcTime).replace(',', '');
+                document.getElementById("temperature").innerText = `${temp} °C`;
+                document.getElementById("timestamp").innerText = `Stand: ${localTime}`;
+            })
+            .catch(error => {
+                console.error("Fehler beim Abrufen der aktuellen Temperatur:", error);
+                document.getElementById("temperature").innerText = "Fehler beim Laden der Daten.";
+            });
+
+        fetch(historyUrl)
+            .then(response => response.json())
+            .then(data => {
+                const temps = data.features[0].properties.parameters.TL.data;
+                const times = data.timestamps;
+                const labels = times.map(t => {
+                    const d = new Date(t);
+                    return d.toLocaleString('de-DE', {
+                        timeZone: 'Europe/Vienna',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                });
+
+                const filteredTemps = temps.map(t => t !== null ? t : null);
+
+                const ctx = document.getElementById('tempChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Temperaturverlauf (°C)',
+                            data: filteredTemps,
+                            borderColor: '#007ACC',
+                            backgroundColor: 'rgba(0, 122, 204, 0.2)',
+                            spanGaps: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { title: { display: true, text: 'Uhrzeit' } },
+                            y: { title: { display: true, text: 'Temperatur (°C)' } }
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Fehler beim Abrufen des Temperaturverlaufs:", error);
+            });
+    </script>
+</body>
+</html>

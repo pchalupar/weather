@@ -1,0 +1,5 @@
+https://dataset.api.hub.geosphere.at/v1/station/historical/tawes-v1-10min?parameters=TL&start=2025-08-20T00:00&end=2025-08-21T00:00&station_ids=11060
+
+https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min?parameters=TL&station_ids=11060
+
+https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min/metadata

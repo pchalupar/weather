@@ -57,8 +57,23 @@
     </div>
 
     <script>
+        // url to retrieve current temperature
         const currentUrl = "https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min?parameters=TL&station_ids=11060";
-        const historyUrl = "https://dataset.api.hub.geosphere.at/v1/station/historical/tawes-v1-10min?parameters=TL&start=2025-08-19T22:00&end=2025-08-20T22:00&station_ids=11060";
+
+        // url to retrieve todays temperature curve
+        const now = new Date();
+        // Get yesterday's date
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        yesterday.setHours(22, 0, 0, 0);
+        // Get today's date at 22:00
+        const today = new Date(now);
+        today.setHours(22, 0, 0, 0);
+        // Format to ISO string without milliseconds and timezone
+        const formatDate = (date) => date.toISOString().slice(0, 16);
+        const start = formatDate(yesterday);
+        const end = formatDate(today);
+        const historyUrl = `https://dataset.api.hub.geosphere.at/v1/station/historical/tawes-v1-10min?parameters=TL&start=${start}&end=${end}&station_ids=11060`;
 
         fetch(currentUrl)
             .then(response => response.json())
